@@ -615,7 +615,11 @@ controller:
       nodeSelector:
         kubernetes.io/os: linux
         type: entry
-      tolerations: []
+      tolerations: 
+        - key: "type"
+          operator: "Equal"
+          value: "entry"
+          effect: "NoSchedule"
       # -- Labels to be added to patch job resources
       labels: {}
       securityContext:
@@ -785,7 +789,12 @@ defaultBackend:
   # -- Node tolerations for server scheduling to nodes with taints
   ## Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   ##
-  tolerations: []
+  tolerations: 
+    - key: "type"
+      operator: "Equal"
+      value: "entry"
+      effect: "NoSchedule"
+
   #  - key: "key"
   #    operator: "Equal|Exists"
   #    value: "value"
@@ -811,6 +820,7 @@ defaultBackend:
   ##
   nodeSelector:
     kubernetes.io/os: linux
+    type: entry
   # -- Annotations to be added to default backend pods
   ##
   podAnnotations: {}
