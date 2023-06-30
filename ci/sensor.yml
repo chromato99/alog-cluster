@@ -1,0 +1,151 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Sensor
+metadata:
+  name: github
+spec:
+  template:
+    serviceAccountName: operate-workflow-sa
+  dependencies:
+    - name: event-dep
+      eventSourceName: github
+      eventName: ci-webhook
+      filters:
+        data:
+          - path: body.pull_request.base.ref
+            type: string
+            value:
+              - develop
+  triggers:
+    - template:
+        name: github-workflow-trigger
+        argoWorkflow:
+          operation: submit
+          source:
+            resource:
+              apiVersion: argoproj.io/v1alpha1
+              kind: Workflow
+              metadata:
+                generateName: github-ci-
+                # if you want to use buildkit, uncomment the following (uncomment the build template too)
+                # annotations:
+                #   container.apparmor.security.beta.kubernetes.io/buildkitd: unconfined
+              spec:
+                imagePullSecrets:
+                  - name: regcred
+                entrypoint: main
+                arguments:
+                  parameters:
+                    - name: repository_name
+                      # the value will get overridden by event payload from event-dep
+                      value: example
+                    - name: repository_url
+                      # the value will get overridden by event payload from event-dep
+                      value: example.com
+                templates:
+                  - name: main
+                    steps:
+                      - - name: build
+                          template: build
+                      # - - name: scan
+                      #     template: scan
+                      - - name: sync-argo-cd
+                          template: sync-argo-cd
+                  - name: build
+                    inputs:
+                      artifacts:
+                        - git:
+                            branch: develop
+                            depth: 1
+                            repo: "{{workflow.parameters.repository_url}}"
+                            singleBranch: true
+                          name: source
+                          path: /workspace
+                    container:
+                      name: kaniko
+                      image: gcr.io/kaniko-project/executor:debug
+                      command: 
+                        - executor
+                      workingDir: /workspace
+                      args:
+                        # - "--insecure-registry=<private docker-registry>"" # if you are using a private docker registry as insecure (http)
+                        - "--dockerfile=Dockerfile"
+                        - "--context=."
+                        - "--build-arg=REACT_APP_USER_API_URL"
+                        - "--build-arg=REACT_APP_AGGREGATOR_API_URL"
+                        # - "--destination=<private docker-registry>/{{workflow.parameters.repository_name}}:latest" # if you are using a private docker registry
+                        - "--destination=chromato99/{{workflow.parameters.repository_name}}:latest"
+                      env:
+                        - name: REACT_APP_USER_API_URL
+                          valueFrom:
+                            secretKeyRef:
+                              key: REACT_APP_USER_API_URL
+                              name: alog-secret
+                        - name: REACT_APP_SURVEY_API_URL
+                          valueFrom:
+                            secretKeyRef:
+                              key: REACT_APP_AGGREGATOR_API_URL
+                              name: alog-secret
+                      volumeMounts:
+                        - name: kaniko-secret
+                          mountPath: /kaniko/.docker
+                    volumes:
+                      - name: kaniko-secret
+                        secret:
+                          secretName: regcred
+                          items:
+                            - key: .dockerconfigjson
+                              path: config.json
+                  # TODO: scan image with trivy
+                  # - name: scan
+                  #   container:
+                  #     name: image-scan
+                  #     image: docker.io/aquasec/trivy
+                  #     command:
+                  #     - trivy
+                  #     args:
+                  #     - client
+                  #     - '--severity'
+                  #     - 'CRITICAL'
+                  #     - '--exit-code'
+                  #     - '1'
+                  #     - '--remote'
+                  #     - 'http://trivy-rules.argo.svc:8080'
+                  #     - 'ghcr.io/kmaster8/hello:v3'
+                  - name: sync-argo-cd
+                    container:
+                      image: alpine:latest
+                      args:
+                        - |-
+                          apk --no-cache add curl
+                          TOKEN=$(curl -s -k $ARGOCD_SERVER/api/v1/session -d "{\"username\":\"admin\",\"password\":\"$ARGOCD_PASSWORD\"}" | sed -e 's/{"token":"//' | sed -e 's/"}//')
+                          curl -k -I -X POST $ARGOCD_SERVER/api/v1/applications/alog/sync -H "Authorization: Bearer $TOKEN"                          
+                      command:
+                        - sh
+                        - -xuce
+                      env:
+                        - name: ARGOCD_SERVER
+                          valueFrom:
+                            secretKeyRef:
+                              key: ARGOCD_SERVER
+                              name: alog-secret
+                        - name: ARGOCD_PASSWORD
+                          valueFrom:
+                            secretKeyRef:
+                              key: ARGOCD_PASSWORD
+                              name: alog-secret
+          parameters:
+            - src:
+                dependencyName: event-dep
+                dataKey: body.repository.name
+              dest: spec.arguments.parameters.0.value
+            - src:
+                dependencyName: event-dep
+                dataKey: body.repository.clone_url
+              dest: spec.arguments.parameters.1.value
+            - src:
+                dependencyName: event-dep
+                dataTemplate: "{{ .Input.body.repository.name }}-"
+              dest: metadata.generateName
+              operation: append
+      retryStrategy:
+        steps: 3

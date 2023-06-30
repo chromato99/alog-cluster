@@ -1,0 +1,27 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- alog-ingress.yml
+- ws-front.yml
+- was-user.yml
+- was-project.yml
+- was-issue.yml
+- was-release.yml
+
+# if you want to use private docker registry or specific image tag, uncomment this snippet and change the name
+# images:
+#   - name: chromato99/alog-front-web:latest
+#     newName: <private docker registry>/alog-front-web:<tag>
+#   - name: chromato99/alog-service-user:latest
+#     newName: <private docker registry>/alog-service-user:<tag>
+#   - name: chromato99/alog-service-project:latest
+#     newName: <private docker registry>/alog-service-project:<tag>
+#   - name: chromato99/alog-service-issue:latest
+#     newName: <private docker registry>/alog-service-issue:<tag>
+#   - name: chromato99/alog-service-release:latest
+#     newName: <private docker registry>/alog-service-release:<tag>
+#   - name: mysql:lastest
+#     newName: <private docker registry>/mysql:<tag>
+#   - name: mongo:lastest
+#     newName: <private docker registry>/mongo:<tag>

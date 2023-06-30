@@ -1,0 +1,156 @@
+version: '3.7'
+services:
+  web:
+    build: 
+      context: ./src/alog-front-web
+      args:
+        - REACT_APP_USER_API_URL=${REACT_APP_USER_API_URL}
+        - REACT_APP_AGGREGATOR_API_URL=${REACT_APP_AGGREGATOR_API_URL}
+    restart: always
+    ports:
+      - 80:80
+    volumes:
+      - ./src/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./src/nginx/default.conf:/etc/nginx/conf.d/default.conf
+
+  user:
+    build:
+      context: ./src/alog-service-user
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://user-db:3306/alog?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+    ports:
+      - 8080:8081
+    depends_on:
+      user-db:
+        condition: service_healthy
+
+  user-db:
+    image: mysql:8
+    environment:
+      MYSQL_DATABASE: alog
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 2s
+      retries: 10
+
+  aggregator:
+    build: 
+      context: ./src/alog-service-aggregator
+    environment:
+      USER_HOSTNAME: http://user:8080
+      PROJECT_HOSTNAME: http://project:8080
+      ISSUE_HOSTNAME: http://issue:8080
+      RELEASE_HOSTNAME: http://release:8080
+    ports:
+      - 8080:8082
+
+  project:
+    build:
+      context: ./src/alog-service-project
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://project-db:3306/alog?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - 8080:8083
+    depends_on:
+      project-db:
+        condition: service_healthy
+
+  project-db:
+    image: mysql:8
+    environment:
+      MYSQL_DATABASE: alog
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 2s
+      retries: 10
+
+  issue:
+    build:
+      context: ./src/alog-service-issue
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://issue-db:3306/alog?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - 8080:8084
+    depends_on:
+      issue-db:
+        condition: service_healthy
+
+  issue-db:
+    image: mysql:8
+    environment:
+      MYSQL_DATABASE: alog
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 2s
+      retries: 10
+
+  release:
+    build:
+      context: ./src/alog-service-release
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://release-db:3306/alog?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - 8080:8085
+    depends_on:
+      release-db:
+        condition: service_healthy
+
+  release-db:
+    image: mysql:8
+    environment:
+      MYSQL_DATABASE: alog
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 2s
+      retries: 10
+
+  envoy:
+    build:
+      context: ./src/envoy
+      dockerfile: ./src/envoy/envoy.Dockerfile
+    image: 'grpcweb:envoy'
+    container_name: 'envoy'
+    restart: always
+    ports:
+      - '8080:8080'
+      - '9901:9901'
+    command: ['/etc/envoy/envoy.yaml']
+    depends_on:
+      - yorkie
+  yorkie:
+    image: 'yorkieteam/yorkie:latest'
+    container_name: 'yorkie'
+    command: [
+      'server',
+      '--mongo-connection-uri',
+      'mongodb://mongo:27017',
+    ]
+    restart: always
+    ports:
+      - '11101:11101'
+      - '11102:11102'
+    depends_on:
+      - mongo
+  mongo:
+    image: 'mongo:latest'
+    container_name: 'mongo'
+    restart: always
+    ports:
+      - '27017:27017'

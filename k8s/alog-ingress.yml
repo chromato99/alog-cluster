@@ -1,0 +1,44 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: alog-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: alog-ws-front
+                port:
+                  number: 80
+          - path: /api/user
+            pathType: Prefix
+            backend:
+              service:
+                name: alog-was-user
+                port:
+                  number: 8080
+          - path: /api/project
+            pathType: Prefix
+            backend:
+              service:
+                name: alog-was-aggregator
+                port:
+                  number: 8080
+          - path: /api/issue
+            pathType: Prefix
+            backend:
+              service:
+                name: alog-was-aggregator
+                port:
+                  number: 8080
+          - path: /api/release
+            pathType: Prefix
+            backend:
+              service:
+                name: alog-was-aggregator
+                port:
+                  number: 8080

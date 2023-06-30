@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: alog-ci-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - path: /github-webhook
+            pathType: Prefix
+            backend:
+              service:
+                name: github-enventsource-svc
+                port:
+                  number: 12000

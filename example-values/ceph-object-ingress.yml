@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: alog-ci-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - path: /ceph-bkt-85bdfe6a-6375-431a-9ce5-e4cb5b296fb0
+            pathType: Prefix
+            backend:
+              service:
+                name: rook-ceph-rgw-ceph-objectstore
+                port:
+                  number: 80
