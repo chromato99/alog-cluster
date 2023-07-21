@@ -762,7 +762,7 @@ controller:
   ## Application controller metrics configuration
   metrics:
     # -- Deploy metrics service
-    enabled: false
+    enabled: true
     applicationLabels:
       # -- Enables additional labels in argocd_app_labels metric
       enabled: false
@@ -783,7 +783,7 @@ controller:
       portName: http-metrics
     serviceMonitor:
       # -- Enable a prometheus ServiceMonitor
-      enabled: false
+      enabled: true
       # -- Prometheus ServiceMonitor interval
       interval: 30s
       # -- Prometheus [RelabelConfigs] to apply to samples before scraping
@@ -806,7 +806,7 @@ controller:
       annotations: {}
     rules:
       # -- Deploy a PrometheusRule for the application controller
-      enabled: false
+      enabled: true
       # -- PrometheusRule namespace
       namespace: "" # "monitoring"
       # -- PrometheusRule selector

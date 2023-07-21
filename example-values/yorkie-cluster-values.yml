@@ -1,0 +1,70 @@
+# Configuration for Yorkie cluster
+yorkie:
+  name: yorkie
+  namespace: &namespace yorkie
+
+  autoscaling:
+    enabled: false
+    replicaCount: 3
+
+  image:
+    repository: yorkieteam/yorkie
+    pullPolicy: IfNotPresent
+    tag: ""
+
+  args:
+    dbUrl: &mongoUrl mongodb
+    dbPort: &mongoPort 27017
+
+  ports:
+    rpcPort: 11101
+    profilingPort: 11102
+
+  resources: {}
+
+# Configuration for internal mongoDB
+mongodb:
+  enabled: true
+
+  namespace: *namespace
+  name: *mongoUrl
+  port: *mongoPort
+  
+  storageClassName: ceph-block
+  storageSize: 8Gi
+  
+# Configuration for istio ingress gateway
+ingressGateway:
+  consistentHash:
+    hashParameter: "x-shard-key"
+
+    # Choose one of two hash based load balancing algorithms below
+    # only one algorithm should be enalbed
+    maglev:
+      enabled: true
+      tableSize: 65537
+    
+    ringHash:
+      enabled: false
+      minimumRingSize: 1024
+
+  # Connection idle timeout for WatchDocument API
+  httpConnection:
+    streamIdleTimeout: 60s
+
+  resources: {}
+
+# Configuration for ingress (eg: AWS ALB)
+ingress:
+  ingressClassName: nginx
+  ## Set to alb if you are using AWS ALB
+  # ingressClassName: alb
+
+  hosts:
+    enabled: false
+    apiHost: yorkie.acceler.kr
+    
+  alb:
+    enabled: false
+    certArn: arn:aws:acm:ap-northeast-2:123412341234:certificate/1234-1234-1234-1234-1234
+
