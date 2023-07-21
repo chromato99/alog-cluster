@@ -67,3 +67,5 @@ A-Form cluster is composed of below repositories.
 - [alog-service-project](https://github.com/KEA-ACCELER/alog-service-project.git)
 - [alog-service-issue](https://github.com/KEA-ACCELER/alog-service-issue.git)
 - [alog-service-release](https://github.com/KEA-ACCELER/alog-service-release.git)
+- [alog-service-aggregator](https://github.com/KEA-ACCELER/alog-service-aggregator.git)
+- [alog-service-auth](https://github.com/KEA-ACCELER/alog-service-auth.git)
