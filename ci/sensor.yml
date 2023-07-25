@@ -11,10 +11,10 @@ spec:
       eventName: ci-webhook
       filters:
         data:
-          - path: body.pull_request.base.ref
+          - path: body.ref
             type: string
             value:
-              - develop
+              - refs/heads/develop
   triggers:
     - template:
         name: github-workflow-trigger
@@ -26,9 +26,6 @@ spec:
               kind: Workflow
               metadata:
                 generateName: github-ci-
-                # if you want to use buildkit, uncomment the following (uncomment the build template too)
-                # annotations:
-                #   container.apparmor.security.beta.kubernetes.io/buildkitd: unconfined
               spec:
                 imagePullSecrets:
                   - name: regcred
