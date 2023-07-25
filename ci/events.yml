@@ -44,9 +44,11 @@ spec:
           names:
             - alog-front-web
             - alog-service-user
+            - alog-service-aggregator
             - alog-service-project
             - alog-service-issue
             - alog-service-release
+            - alog-service-auth
       # Github application auth. Instead of using personal token `apiToken` use app PEM            
       # githubApp:
       #   privateKey:
