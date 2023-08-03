@@ -14,7 +14,7 @@ spec:
           - path: body.ref
             type: string
             value:
-              - refs/heads/develop
+              - refs/heads/main
   triggers:
     - template:
         name: github-workflow-trigger
@@ -38,9 +38,8 @@ spec:
                     - name: repository_url
                       # the value will get overridden by event payload from event-dep
                       value: example.com
-                    - name: commit_sha
-                      # the value will get overridden by event payload from event-dep
-                      value: 1234567
+                    - name: date
+                      value: "{{workflow.creationTimestamp.Y}}-{ {workflow.creationTimestamp.m}}-{ {workflow.creationTimestamp.d}}"
                 templates:
                   - name: main
                     steps:
@@ -70,20 +69,27 @@ spec:
                         # - "--insecure-registry=<private docker-registry>"" # if you are using a private docker registry as insecure (http)
                         - "--dockerfile=Dockerfile"
                         - "--context=."
-                        - "--build-arg=REACT_APP_USER_API_URL"
-                        - "--build-arg=REACT_APP_AGGREGATOR_API_URL"
+                        - "--build-arg=REACT_APP_CLIENT_ID"
+                        - "--build-arg=REACT_APP_ALOG_API_URL"
                         # - "--destination=<private docker-registry>/{{workflow.parameters.repository_name}}:latest" # if you are using a private docker registry
-                        - "--destination=chromato99/{{workflow.parameters.repository_name}}:develop-{{workflow.parameters.commit_sha}}"
+                        - "--destination=chromato99/{{workflow.parameters.repository_name}}:stable-{{workflow.parameters.date}}"
+                        - "--destination=chromato99/{{workflow.parameters.repository_name}}:stable"
+                        - "--destination=chromato99/{{workflow.parameters.repository_name}}:latest"
                       env:
-                        - name: REACT_APP_USER_API_URL
+                        - name: REACT_APP_CLIENT_ID
                           valueFrom:
                             secretKeyRef:
-                              key: REACT_APP_USER_API_URL
+                              key: REACT_APP_CLIENT_ID
                               name: alog-secret
-                        - name: REACT_APP_SURVEY_API_URL
+                        - name: GH_LOGIN_REDIRECT_URL
                           valueFrom:
                             secretKeyRef:
-                              key: REACT_APP_AGGREGATOR_API_URL
+                              key: GH_LOGIN_REDIRECT_URL
+                              name: alog-secret
+                        - name: REACT_APP_ALOG_API_URL
+                          valueFrom:
+                            secretKeyRef:
+                              key: REACT_APP_ALOG_API_URL
                               name: alog-secret
                       volumeMounts:
                         - name: kaniko-secret
@@ -111,28 +117,30 @@ spec:
                   #     - '--remote'
                   #     - 'http://trivy-rules.argo.svc:8080'
                   #     - 'ghcr.io/kmaster8/hello:v3'
-                  - name: sync-argo-cd
-                    container:
-                      image: alpine:latest
-                      args:
-                        - |-
-                          apk --no-cache add curl
-                          TOKEN=$(curl -s -k $ARGOCD_SERVER/api/v1/session -d "{\"username\":\"admin\",\"password\":\"$ARGOCD_PASSWORD\"}" | sed -e 's/{"token":"//' | sed -e 's/"}//')
-                          curl -k -I -X POST $ARGOCD_SERVER/api/v1/applications/alog/sync -H "Authorization: Bearer $TOKEN"                          
-                      command:
-                        - sh
-                        - -xuce
-                      env:
-                        - name: ARGOCD_SERVER
-                          valueFrom:
-                            secretKeyRef:
-                              key: ARGOCD_SERVER
-                              name: alog-secret
-                        - name: ARGOCD_PASSWORD
-                          valueFrom:
-                            secretKeyRef:
-                              key: ARGOCD_PASSWORD
-                              name: alog-secret
+
+                  # Deprecated: sync-argo-cd (using argocd-image-updater instead)
+                  # - name: sync-argo-cd
+                  #   container:
+                  #     image: alpine:latest
+                  #     args:
+                  #       - |-
+                  #         apk --no-cache add curl
+                  #         TOKEN=$(curl -s -k $ARGOCD_SERVER/api/v1/session -d "{\"username\":\"admin\",\"password\":\"$ARGOCD_PASSWORD\"}" | sed -e 's/{"token":"//' | sed -e 's/"}//')
+                  #         curl -k -I -X POST $ARGOCD_SERVER/api/v1/applications/alog/sync -H "Authorization: Bearer $TOKEN"                          
+                  #     command:
+                  #       - sh
+                  #       - -xuce
+                  #     env:
+                  #       - name: ARGOCD_SERVER
+                  #         valueFrom:
+                  #           secretKeyRef:
+                  #             key: ARGOCD_SERVER
+                  #             name: alog-secret
+                  #       - name: ARGOCD_PASSWORD
+                  #         valueFrom:
+                  #           secretKeyRef:
+                  #             key: ARGOCD_PASSWORD
+                  #             name: alog-secret
           parameters:
             - src:
                 dependencyName: event-dep
@@ -144,11 +152,7 @@ spec:
               dest: spec.arguments.parameters.1.value
             - src:
                 dependencyName: event-dep
-                dataTemplate: "{{ .Input.body.after | substr 0 7 }}"
-              dest: spec.arguments.parameters.2.value
-            - src:
-                dependencyName: event-dep
-                dataTemplate: "{{ .Input.body.repository.name }}-"
+                dataTemplate: "{{ .Input.body.repository.name }}-main-"
               dest: metadata.generateName
               operation: append
       retryStrategy:
