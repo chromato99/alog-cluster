@@ -48,8 +48,8 @@ spec:
                           template: build
                       # - - name: scan
                       #     template: scan
-                      - - name: sync-argo-cd
-                          template: sync-argo-cd
+                      # - - name: sync-argo-cd
+                      #     template: sync-argo-cd
                   - name: build
                     inputs:
                       artifacts:
@@ -112,28 +112,30 @@ spec:
                   #     - '--remote'
                   #     - 'http://trivy-rules.argo.svc:8080'
                   #     - 'ghcr.io/kmaster8/hello:v3'
-                  - name: sync-argo-cd
-                    container:
-                      image: alpine:latest
-                      args:
-                        - |-
-                          apk --no-cache add curl
-                          TOKEN=$(curl -s -k $ARGOCD_SERVER/api/v1/session -d "{\"username\":\"admin\",\"password\":\"$ARGOCD_PASSWORD\"}" | sed -e 's/{"token":"//' | sed -e 's/"}//')
-                          curl -k -I -X POST $ARGOCD_SERVER/api/v1/applications/alog/sync -H "Authorization: Bearer $TOKEN"                          
-                      command:
-                        - sh
-                        - -xuce
-                      env:
-                        - name: ARGOCD_SERVER
-                          valueFrom:
-                            secretKeyRef:
-                              key: ARGOCD_SERVER
-                              name: alog-secret
-                        - name: ARGOCD_PASSWORD
-                          valueFrom:
-                            secretKeyRef:
-                              key: ARGOCD_PASSWORD
-                              name: alog-secret
+                  #
+                  # Deprecated: use argocd-image-updater instead
+                  # - name: sync-argo-cd
+                  #   container:
+                  #     image: alpine:latest
+                  #     args:
+                  #       - |-
+                  #         apk --no-cache add curl
+                  #         TOKEN=$(curl -s -k $ARGOCD_SERVER/api/v1/session -d "{\"username\":\"admin\",\"password\":\"$ARGOCD_PASSWORD\"}" | sed -e 's/{"token":"//' | sed -e 's/"}//')
+                  #         curl -k -I -X POST $ARGOCD_SERVER/api/v1/applications/alog/sync -H "Authorization: Bearer $TOKEN"                          
+                  #     command:
+                  #       - sh
+                  #       - -xuce
+                  #     env:
+                  #       - name: ARGOCD_SERVER
+                  #         valueFrom:
+                  #           secretKeyRef:
+                  #             key: ARGOCD_SERVER
+                  #             name: alog-secret
+                  #       - name: ARGOCD_PASSWORD
+                  #         valueFrom:
+                  #           secretKeyRef:
+                  #             key: ARGOCD_PASSWORD
+                  #             name: alog-secret
           parameters:
             - src:
                 dependencyName: event-dep
