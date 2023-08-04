@@ -99,7 +99,6 @@ spec:
                 optional: false
         ports:
         - containerPort: 3306
-          name: project-db-mysql
         volumeMounts:
             - name: mysql-persistent-storage
               mountPath: /var/lib/mysql
@@ -118,7 +117,7 @@ spec:
   ports:
   - name : project-db-port
     port: 3306
-    targetPort: project-db-mysql
+    targetPort: 3306
   selector:
     app: alog
     tier: project-db
