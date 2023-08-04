@@ -19,8 +19,18 @@ spec:
     spec:
       containers:
       - name: alog-service-aggr
-        image: chromato99/alog-service-aggr:latest
+        image: chromato99/alog-service-aggregator:latest
         env:
+          - name: USER_SERVICE_URL
+            value: http://alog-service-user:8081
+          - name: PROJECT_SERVICE_URL
+            value: http://alog-service-project:8083
+          - name: ISSUE_SERVICE_URL
+            value: http://alog-service-issue:8084
+          - name: RELEASE_NOTE_SERVICE_URL
+            value: http://alog-service-release:8085
+          - name: FILE_SERVICE_URL
+            value: http://alog-service-file:8086
         ports:
         - containerPort: 8082
           name: aggr-http

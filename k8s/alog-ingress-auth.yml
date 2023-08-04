@@ -20,7 +20,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: alog-service-aggregator
+                name: alog-service-aggr
                 port:
                   number: 8082
           - path: /api/projects
