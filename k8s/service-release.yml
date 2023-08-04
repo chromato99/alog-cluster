@@ -27,14 +27,18 @@ spec:
             valueFrom:
               secretKeyRef:
                 name: alog-secret
-                key: SPRING_DATASOURCE_USERNAME
+                key: DB_USERNAME
                 optional: false
           - name: SPRING_DATASOURCE_PASSWORD
             valueFrom:
               secretKeyRef:
                 name: alog-secret
-                key: SPRING_DATASOURCE_PASSWORD
+                key: DB_PASSWORD
                 optional: false
+          - name: REDIS_HOST
+            value: alog-release-cache
+          - name: REDIS_PORT
+            value: 6379
         ports:
         - containerPort: 8085
           name: release-http
@@ -99,7 +103,6 @@ spec:
                 optional: false
         ports:
         - containerPort: 3306
-          name: release-db-mysql
         volumeMounts:
             - name: mysql-persistent-storage
               mountPath: /var/lib/mysql
@@ -118,8 +121,48 @@ spec:
   ports:
   - name : release-db-port
     port: 3306
-    targetPort: release-db-mysql
+    targetPort: 3306
   selector:
     app: alog
     tier: release-db
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alog-release-cache
+  labels:
+    app: alog
+    tier: release-cache
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alog
+      tier: release-cache
+  template:
+    metadata:
+      labels:
+        app: alog
+        tier: release-cache
+    spec:
+      containers:
+      - name: alog-release-cache
+        image: redis:7
+        ports:
+        - containerPort: 6379
+      imagePullSecrets:
+        - name: regcred
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alog-release-cache
+spec:
+  ports:
+  - name : rel-cache-port
+    port: 6379
+    targetPort: 6379
+  selector:
+    app: alog
+    tier: release-cache
 ---

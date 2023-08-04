@@ -29,6 +29,18 @@ spec:
                 optional: false
           - name: USER_SERVICE_URL
             value: http://alog-service-user:8081
+          - name: GITHUB_CLIENT_ID
+            valueFrom:
+              secretKeyRef:
+                name: alog-secret
+                key: GITHUB_CLIENT_ID
+                optional: false
+          - name: GITHUB_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: alog-secret
+                key: GITHUB_CLIENT_SECRET
+                optional: false
         ports:
         - containerPort: 8087
           name: auth-http
