@@ -1,0 +1,125 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alog-service-release
+  labels:
+    app: alog
+    tier: service-release
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: alog
+      tier: service-release
+  template:
+    metadata:
+      labels:
+        app: alog
+        tier: service-release
+    spec:
+      containers:
+      - name: alog-service-release
+        image: chromato99/alog-service-release:latest
+        env:
+          - name: SPRING_DATASOURCE_URL
+            value: jdbc:mysql://alog-release-db:3306/alog?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+          - name: SPRING_DATASOURCE_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: alog-secret
+                key: SPRING_DATASOURCE_USERNAME
+                optional: false
+          - name: SPRING_DATASOURCE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: alog-secret
+                key: SPRING_DATASOURCE_PASSWORD
+                optional: false
+        ports:
+        - containerPort: 8085
+          name: release-http
+      imagePullSecrets:
+        - name: regcred
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alog-service-release
+spec:
+  ports:
+  - name : release-port
+    port: 8085
+    targetPort: release-http
+  selector:
+    app: alog
+    tier: service-release
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: release-db-pvc
+spec:
+  storageClassName: ceph-block
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alog-release-db
+  labels:
+    app: alog
+    tier: release-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alog
+      tier: release-db
+  template:
+    metadata:
+      labels:
+        app: alog
+        tier: release-db
+    spec:
+      containers:
+      - name: alog-release-db
+        image: mysql:8
+        env:
+          - name: MYSQL_DATABASE
+            value: alog
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: alog-secret
+                key: DB_PASSWORD
+                optional: false
+        ports:
+        - containerPort: 3306
+          name: release-db-mysql
+        volumeMounts:
+            - name: mysql-persistent-storage
+              mountPath: /var/lib/mysql
+      imagePullSecrets:
+        - name: regcred
+      volumes:
+        - name: mysql-persistent-storage
+          persistentVolumeClaim:
+            claimName: release-db-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alog-release-db
+spec:
+  ports:
+  - name : release-db-port
+    port: 3306
+    targetPort: release-db-mysql
+  selector:
+    app: alog
+    tier: release-db
+---

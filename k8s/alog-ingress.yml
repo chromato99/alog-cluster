@@ -14,31 +14,17 @@ spec:
                 name: alog-ws-front
                 port:
                   number: 80
-          - path: /api/user
+          - path: /api/users/permit-all
             pathType: Prefix
             backend:
               service:
-                name: alog-was-user
+                name: alog-service-user
                 port:
-                  number: 8080
-          - path: /api/project
+                  number: 8081
+          - path: /auth/permit-all
             pathType: Prefix
             backend:
               service:
-                name: alog-was-aggregator
+                name: alog-service-auth
                 port:
-                  number: 8080
-          - path: /api/issue
-            pathType: Prefix
-            backend:
-              service:
-                name: alog-was-aggregator
-                port:
-                  number: 8080
-          - path: /api/release
-            pathType: Prefix
-            backend:
-              service:
-                name: alog-was-aggregator
-                port:
-                  number: 8080
+                  number: 8087

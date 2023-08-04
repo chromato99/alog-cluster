@@ -1,0 +1,125 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alog-service-issue
+  labels:
+    app: alog
+    tier: service-issue
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: alog
+      tier: service-issue
+  template:
+    metadata:
+      labels:
+        app: alog
+        tier: service-issue
+    spec:
+      containers:
+      - name: alog-service-issue
+        image: chromato99/alog-service-issue:latest
+        env:
+          - name: SPRING_DATASOURCE_URL
+            value: jdbc:mysql://alog-issue-db:3306/alog?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+          - name: SPRING_DATASOURCE_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: alog-secret
+                key: SPRING_DATASOURCE_USERNAME
+                optional: false
+          - name: SPRING_DATASOURCE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: alog-secret
+                key: SPRING_DATASOURCE_PASSWORD
+                optional: false
+        ports:
+        - containerPort: 8084
+          name: issue-http
+      imagePullSecrets:
+        - name: regcred
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alog-service-issue
+spec:
+  ports:
+  - name : issue-port
+    port: 8084
+    targetPort: issue-http
+  selector:
+    app: alog
+    tier: service-issue
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: issue-db-pvc
+spec:
+  storageClassName: ceph-block
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alog-issue-db
+  labels:
+    app: alog
+    tier: issue-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alog
+      tier: issue-db
+  template:
+    metadata:
+      labels:
+        app: alog
+        tier: issue-db
+    spec:
+      containers:
+      - name: alog-issue-db
+        image: mysql:8
+        env:
+          - name: MYSQL_DATABASE
+            value: alog
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: alog-secret
+                key: DB_PASSWORD
+                optional: false
+        ports:
+        - containerPort: 3306
+          name: issue-db-mysql
+        volumeMounts:
+            - name: mysql-persistent-storage
+              mountPath: /var/lib/mysql
+      imagePullSecrets:
+        - name: regcred
+      volumes:
+        - name: mysql-persistent-storage
+          persistentVolumeClaim:
+            claimName: issue-db-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alog-issue-db
+spec:
+  ports:
+  - name : issue-db-port
+    port: 3306
+    targetPort: issue-db-mysql
+  selector:
+    app: alog
+    tier: issue-db
+---
