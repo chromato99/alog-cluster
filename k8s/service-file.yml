@@ -66,7 +66,7 @@ spec:
                 key: AWS_SECRET_ACCESS_KEY
                 optional: false
         ports:
-        - containerPort: 8084
+        - containerPort: 8086
           name: file-http
       imagePullSecrets:
         - name: regcred
@@ -76,10 +76,12 @@ kind: Service
 metadata:
   name: alog-service-file
 spec:
+  type: NodePort
   ports:
   - name : file-port
-    port: 8084
+    port: 8086
     targetPort: file-http
+    nodePort: 30086
   selector:
     app: alog
     tier: service-file

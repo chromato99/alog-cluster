@@ -50,10 +50,12 @@ kind: Service
 metadata:
   name: alog-service-release
 spec:
+  type: NodePort
   ports:
   - name : release-port
     port: 8085
     targetPort: release-http
+    nodePort: 30085
   selector:
     app: alog
     tier: service-release

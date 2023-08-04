@@ -76,10 +76,12 @@ kind: Service
 metadata:
   name: alog-service-user
 spec:
+  type: NodePort
   ports:
   - name : user-port
     port: 8081
     targetPort: user-http
+    nodePort: 30081
   selector:
     app: alog
     tier: service-user
