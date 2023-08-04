@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alog-service-auth
+  labels:
+    app: alog
+    tier: service-auth
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: alog
+      tier: service-auth
+  template:
+    metadata:
+      labels:
+        app: alog
+        tier: service-auth
+    spec:
+      containers:
+      - name: alog-service-auth
+        image: chromato99/alog-service-auth:latest
+        env:
+          - name: JWT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: alog-secret
+                key: JWT_SECRET
+                optional: false
+          - name: USER_SERVICE_URL
+            value: http://alog-service-user:8081
+        ports:
+        - containerPort: 8087
+          name: auth-http
+      imagePullSecrets:
+        - name: regcred
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alog-service-auth
+spec:
+  ports:
+  - name : auth-port
+    port: 8087
+    targetPort: auth-http
+  selector:
+    app: alog
+    tier: service-auth
+---

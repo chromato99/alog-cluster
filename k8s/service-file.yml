@@ -1,0 +1,155 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alog-service-file
+  labels:
+    app: alog
+    tier: service-file
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: alog
+      tier: service-file
+  template:
+    metadata:
+      labels:
+        app: alog
+        tier: service-file
+    spec:
+      containers:
+      - name: alog-service-file
+        image: chromato99/alog-service-file:latest
+        env:
+          - name: SPRING_DATASOURCE_URL
+            value: jdbc:mysql://alog-file-db:3306/alog?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+          - name: SPRING_DATASOURCE_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: alog-secret
+                key: SPRING_DATASOURCE_USERNAME
+                optional: false
+          - name: SPRING_DATASOURCE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: alog-secret
+                key: SPRING_DATASOURCE_PASSWORD
+                optional: false
+          - name: AWS_ENDPOINT
+            valueFrom:
+              secretKeyRef:
+                name: alog-secret
+                key: AWS_ENDPOINT
+                optional: false
+          - name: REGION
+            valueFrom:
+              secretKeyRef:
+                name: alog-secret
+                key: REGION
+                optional: false
+          - name: S3_BUCKET_NAME
+            valueFrom:
+              secretKeyRef:
+                name: alog-secret
+                key: S3_BUCKET_NAME
+                optional: false
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: alog-secret
+                key: AWS_ACCESS_KEY_ID
+                optional: false
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: alog-secret
+                key: AWS_SECRET_ACCESS_KEY
+                optional: false
+        ports:
+        - containerPort: 8084
+          name: file-http
+      imagePullSecrets:
+        - name: regcred
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alog-service-file
+spec:
+  ports:
+  - name : file-port
+    port: 8084
+    targetPort: file-http
+  selector:
+    app: alog
+    tier: service-file
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: file-db-pvc
+spec:
+  storageClassName: ceph-block
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alog-file-db
+  labels:
+    app: alog
+    tier: file-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alog
+      tier: file-db
+  template:
+    metadata:
+      labels:
+        app: alog
+        tier: file-db
+    spec:
+      containers:
+      - name: alog-file-db
+        image: mysql:8
+        env:
+          - name: MYSQL_DATABASE
+            value: alog
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: alog-secret
+                key: DB_PASSWORD
+                optional: false
+        ports:
+        - containerPort: 3306
+          name: file-db-mysql
+        volumeMounts:
+            - name: mysql-persistent-storage
+              mountPath: /var/lib/mysql
+      imagePullSecrets:
+        - name: regcred
+      volumes:
+        - name: mysql-persistent-storage
+          persistentVolumeClaim:
+            claimName: file-db-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alog-file-db
+spec:
+  ports:
+  - name : file-db-port
+    port: 3306
+    targetPort: file-db-mysql
+  selector:
+    app: alog
+    tier: file-db
+---

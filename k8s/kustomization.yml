@@ -3,16 +3,21 @@ kind: Kustomization
 
 resources:
 - alog-ingress.yml
+- alog-ingress-auth.yml
 - ws-front.yml
-- was-user.yml
-- was-project.yml
-- was-issue.yml
-- was-release.yml
+- service-auth.yml
+- service-user.yml
+- service-project.yml
+- service-issue.yml
+- service-release.yml
+- service-aggr.yml
 
 # if you want to use private docker registry or specific image tag, uncomment this snippet and change the name
 # images:
 #   - name: chromato99/alog-front-web:latest
 #     newName: <private docker registry>/alog-front-web:<tag>
+#   - name: chromato99/alog-service-auth:latest
+#     newName: <private docker registry>/alog-service-auth:<tag>
 #   - name: chromato99/alog-service-user:latest
 #     newName: <private docker registry>/alog-service-user:<tag>
 #   - name: chromato99/alog-service-project:latest
@@ -21,6 +26,8 @@ resources:
 #     newName: <private docker registry>/alog-service-issue:<tag>
 #   - name: chromato99/alog-service-release:latest
 #     newName: <private docker registry>/alog-service-release:<tag>
+#   - name: chromato99/alog-service-aggr:latest
+#     newName: <private docker registry>/alog-service-aggr:<tag>
 #   - name: mysql:lastest
 #     newName: <private docker registry>/mysql:<tag>
 #   - name: mongo:lastest

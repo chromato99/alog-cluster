@@ -1,0 +1,52 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: alog-ingress-auth
+  annotations:
+    nginx.ingress.kubernetes.io/auth-url: http://alog-service-auth:8087/auth/validate
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+          - path: /api/users
+            pathType: Prefix
+            backend:
+              service:
+                name: alog-service-user
+                port:
+                  number: 8081
+          - path: /api/aggr
+            pathType: Prefix
+            backend:
+              service:
+                name: alog-service-aggregator
+                port:
+                  number: 8082
+          - path: /api/projects
+            pathType: Prefix
+            backend:
+              service:
+                name: alog-service-project
+                port:
+                  number: 8083
+          - path: /api/issue
+            pathType: Prefix
+            backend:
+              service:
+                name: alog-service-issue
+                port:
+                  number: 8084
+          - path: /api/release
+            pathType: Prefix
+            backend:
+              service:
+                name: alog-service-release
+                port:
+                  number: 8085
+          - path: /api/files
+            pathType: Prefix
+            backend:
+              service:
+                name: alog-service-file
+                port:
+                  number: 8086
