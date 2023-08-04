@@ -47,13 +47,13 @@ spec:
                           template: build
                       # - - name: scan
                       #     template: scan
-                      - - name: sync-argo-cd
-                          template: sync-argo-cd
+                      # - - name: sync-argo-cd
+                      #     template: sync-argo-cd
                   - name: build
                     inputs:
                       artifacts:
                         - git:
-                            branch: develop
+                            branch: main
                             depth: 1
                             repo: "{{workflow.parameters.repository_url}}"
                             singleBranch: true
@@ -118,7 +118,7 @@ spec:
                   #     - 'http://trivy-rules.argo.svc:8080'
                   #     - 'ghcr.io/kmaster8/hello:v3'
 
-                  # Deprecated: sync-argo-cd (using argocd-image-updater instead)
+                  # Deprecated: use argocd-image-updater instead
                   # - name: sync-argo-cd
                   #   container:
                   #     image: alpine:latest
