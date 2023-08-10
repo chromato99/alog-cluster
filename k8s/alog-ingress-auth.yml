@@ -3,7 +3,11 @@ kind: Ingress
 metadata:
   name: alog-ingress-auth
   annotations:
-    nginx.ingress.kubernetes.io/auth-url: http://alog-service-auth:8087/auth/jwt/validate
+    nginx.ingress.kubernetes.io/auth-url: http://alog-service-auth.default.svc.cluster.local:8087/auth/jwt/validate
+    nginx.ingress.kubernetes.io/auth-snippet: |
+      if ($request_method = OPTIONS ) {
+        return 200;
+      }
 spec:
   ingressClassName: nginx
   rules:
