@@ -92,7 +92,7 @@ spec:
       containers:
       - name: alog-noti-db
         image: scylladb/scylla
-        args: ["--seeds", "alog-noti-db-1"]
+        args: ["--smp", "1", "--memory", "1G", "--overprovisioned", "0"]
         env:
           - name: SCYLLA_USERNAME
             valueFrom:
@@ -165,6 +165,7 @@ spec:
 #       containers:
 #       - name: alog-noti-db
 #         image: scylladb/scylla
+#         args: ["--seeds", "alog-noti-db-1", "--smp", "1", "--memory", "1G", "--overprovisioned", "0"]
 #         env:
 #           - name: SCYLLA_USERNAME
 #             valueFrom:
@@ -237,6 +238,7 @@ spec:
 #       containers:
 #       - name: alog-noti-db
 #         image: scylladb/scylla
+#         args: ["--seeds", "alog-noti-db-1", "--smp", "1", "--memory", "1G", "--overprovisioned", "0"]
 #         env:
 #           - name: SCYLLA_USERNAME
 #             valueFrom:
