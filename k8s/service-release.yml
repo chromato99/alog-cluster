@@ -35,6 +35,8 @@ spec:
                 name: alog-secret
                 key: DB_PASSWORD
                 optional: false
+          - name: NOTICE_SERVICE_URL
+            value: http://alog-service-noti:8088
           - name: REDIS_HOST
             value: alog-release-cache
           - name: REDIS_PORT

@@ -31,6 +31,8 @@ spec:
             value: http://alog-service-release:8085
           - name: FILE_SERVICE_URL
             value: http://alog-service-file:8086
+          - name: NOTICE_SERVICE_URL
+            value: http://alog-service-noti:8088
         ports:
         - containerPort: 8082
           name: aggr-http

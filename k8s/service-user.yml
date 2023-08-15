@@ -65,6 +65,8 @@ spec:
                 name: alog-secret
                 key: SPRING_MAIL_PROPS_MAIL_SMTP_TIMEOUT
                 optional: false
+          - name: NOTICE_SERVICE_URL
+            value: http://alog-service-noti:8088
         ports:
         - containerPort: 8081
           name: user-http
