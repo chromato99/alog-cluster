@@ -72,6 +72,8 @@ spec:
                         - "--context=."
                         - "--build-arg=REACT_APP_CLIENT_ID"
                         - "--build-arg=REACT_APP_ALOG_API_URL"
+                        - "--build-arg=REACT_APP_YORKIE_API_URL"
+                        - "--build-arg=REACT_APP_YORKIE_API_KEY"
                         # - "--destination=<private docker-registry>/{{workflow.parameters.repository_name}}:latest" # if you are using a private docker registry
                         - "--destination=chromato99/{{workflow.parameters.repository_name}}:develop-{{workflow.parameters.commit_sha}}"
                         - "--destination=chromato99/{{workflow.parameters.repository_name}}:develop"
@@ -85,6 +87,16 @@ spec:
                           valueFrom:
                             secretKeyRef:
                               key: REACT_APP_ALOG_API_URL
+                              name: alog-secret
+                        - name: REACT_APP_YORKIE_API_URL
+                          valueFrom:
+                            secretKeyRef:
+                              key: REACT_APP_YORKIE_API_URL
+                              name: alog-secret
+                        - name: REACT_APP_YORKIE_API_KEY
+                          valueFrom:
+                            secretKeyRef:
+                              key: REACT_APP_YORKIE_API_KEY
                               name: alog-secret
                       volumeMounts:
                         - name: kaniko-secret
