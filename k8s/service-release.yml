@@ -41,6 +41,8 @@ spec:
             value: alog-release-cache
           - name: REDIS_PORT
             value: "6379"
+          - name: AGGREGATOR_SERVICE_URL
+            value: http://alog-service-aggr:8082
         ports:
         - containerPort: 8085
           name: release-http
