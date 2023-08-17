@@ -44,12 +44,10 @@ kind: Service
 metadata:
   name: alog-service-aggr
 spec:
-  type: NodePort
   ports:
   - name : aggr-port
     port: 8082
     targetPort: aggr-http
-    nodePort: 30082
   selector:
     app: alog
     tier: service-aggr

@@ -48,12 +48,10 @@ kind: Service
 metadata:
   name: alog-service-noti
 spec:
-  type: NodePort
   ports:
   - name : noti-port
     port: 8088
     targetPort: noti-http
-    nodePort: 30088
   selector:
     app: alog
     tier: service-noti
@@ -63,7 +61,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: noti-db-pvc-1
 spec:
-  storageClassName: ceph-block
+  storageClassName: csi-cinder-sc-delete
   accessModes:
     - ReadWriteOnce
   resources:
@@ -136,7 +134,7 @@ spec:
 # metadata:
 #   name: noti-db-pvc-2
 # spec:
-#   storageClassName: ceph-block
+#   storageClassName: csi-cinder-sc-delete
 #   accessModes:
 #     - ReadWriteOnce
 #   resources:
@@ -209,7 +207,7 @@ spec:
 # metadata:
 #   name: noti-db-pvc-3
 # spec:
-#   storageClassName: ceph-block
+#   storageClassName: csi-cinder-sc-delete
 #   accessModes:
 #     - ReadWriteOnce
 #   resources:

@@ -76,12 +76,10 @@ kind: Service
 metadata:
   name: alog-service-file
 spec:
-  type: NodePort
   ports:
   - name : file-port
     port: 8086
     targetPort: file-http
-    nodePort: 30086
   selector:
     app: alog
     tier: service-file
@@ -91,7 +89,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: file-db-pvc
 spec:
-  storageClassName: ceph-block
+  storageClassName: csi-cinder-sc-delete
   accessModes:
     - ReadWriteOnce
   resources:

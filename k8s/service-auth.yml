@@ -52,12 +52,10 @@ kind: Service
 metadata:
   name: alog-service-auth
 spec:
-  type: NodePort
   ports:
   - name : auth-port
     port: 8087
     targetPort: auth-http
-    nodePort: 30087
   selector:
     app: alog
     tier: service-auth

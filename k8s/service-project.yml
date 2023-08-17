@@ -48,12 +48,10 @@ kind: Service
 metadata:
   name: alog-service-project
 spec:
-  type: NodePort
   ports:
   - name : project-port
     port: 8083
     targetPort: project-http
-    nodePort: 30083
   selector:
     app: alog
     tier: service-project
@@ -63,7 +61,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: project-db-pvc
 spec:
-  storageClassName: ceph-block
+  storageClassName: csi-cinder-sc-delete
   accessModes:
     - ReadWriteOnce
   resources:

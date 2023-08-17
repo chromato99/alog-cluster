@@ -14,7 +14,7 @@ spec:
           - path: body.ref
             type: string
             value:
-              - refs/heads/develop
+              - refs/heads/main
   triggers:
     - template:
         name: github-workflow-trigger
@@ -54,7 +54,7 @@ spec:
                     inputs:
                       artifacts:
                         - git:
-                            branch: develop
+                            branch: main
                             depth: 1
                             repo: "{{workflow.parameters.repository_url}}"
                             singleBranch: true
@@ -71,33 +71,40 @@ spec:
                         - "--dockerfile=Dockerfile"
                         - "--context=."
                         - "--build-arg=REACT_APP_CLIENT_ID"
+                        - "--build-arg=REACT_APP_CLIENT_SECRET"
                         - "--build-arg=REACT_APP_ALOG_API_URL"
                         - "--build-arg=REACT_APP_YORKIE_API_URL"
                         - "--build-arg=REACT_APP_YORKIE_API_KEY"
                         # - "--destination=<private docker-registry>/{{workflow.parameters.repository_name}}:latest" # if you are using a private docker registry
-                        - "--destination=chromato99/{{workflow.parameters.repository_name}}:develop-{{workflow.parameters.commit_sha}}"
-                        - "--destination=chromato99/{{workflow.parameters.repository_name}}:develop"
+                        - "--destination=chromato99/{{workflow.parameters.repository_name}}:main-{{workflow.parameters.commit_sha}}"
+                        - "--destination=chromato99/{{workflow.parameters.repository_name}}:main"
+                        - "--destination=chromato99/{{workflow.parameters.repository_name}}:latest"
                       env:
                         - name: REACT_APP_CLIENT_ID
                           valueFrom:
                             secretKeyRef:
                               key: REACT_APP_CLIENT_ID
-                              name: alog-secret
+                              name: alog-secret-main
+                        - name: REACT_APP_CLIENT_SECRET
+                          valueFrom:
+                            secretKeyRef:
+                              key: REACT_APP_CLIENT_SECRET
+                              name: alog-secret-main
                         - name: REACT_APP_ALOG_API_URL
                           valueFrom:
                             secretKeyRef:
                               key: REACT_APP_ALOG_API_URL
-                              name: alog-secret
+                              name: alog-secret-main
                         - name: REACT_APP_YORKIE_API_URL
                           valueFrom:
                             secretKeyRef:
                               key: REACT_APP_YORKIE_API_URL
-                              name: alog-secret
+                              name: alog-secret-main
                         - name: REACT_APP_YORKIE_API_KEY
                           valueFrom:
                             secretKeyRef:
                               key: REACT_APP_YORKIE_API_KEY
-                              name: alog-secret
+                              name: alog-secret-main
                       volumeMounts:
                         - name: kaniko-secret
                           mountPath: /kaniko/.docker
@@ -163,7 +170,7 @@ spec:
               dest: spec.arguments.parameters.2.value
             - src:
                 dependencyName: event-dep
-                dataTemplate: "{{ .Input.body.repository.name }}-develop-"
+                dataTemplate: "{{ .Input.body.repository.name }}-main-"
               dest: metadata.generateName
               operation: append
       retryStrategy:
