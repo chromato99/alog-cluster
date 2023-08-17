@@ -1,0 +1,126 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alog-service-project
+  labels:
+    app: alog
+    tier: service-project
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: alog
+      tier: service-project
+  template:
+    metadata:
+      labels:
+        app: alog
+        tier: service-project
+    spec:
+      containers:
+      - name: alog-service-project
+        image: chromato99/alog-service-project:latest
+        env:
+          - name: SPRING_DATASOURCE_URL
+            value: jdbc:mysql://alog-project-db:3306/alog?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+          - name: SPRING_DATASOURCE_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: alog-secret
+                key: DB_USERNAME
+                optional: false
+          - name: SPRING_DATASOURCE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: alog-secret
+                key: DB_PASSWORD
+                optional: false
+          - name: NOTICE_SERVICE_URL
+            value: http://alog-service-noti:8088
+        ports:
+        - containerPort: 8083
+          name: project-http
+      imagePullSecrets:
+        - name: regcred
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alog-service-project
+spec:
+  ports:
+  - name : project-port
+    port: 8083
+    targetPort: project-http
+  selector:
+    app: alog
+    tier: service-project
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: project-db-pvc
+spec:
+  storageClassName: csi-cinder-sc-delete
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alog-project-db
+  labels:
+    app: alog
+    tier: project-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alog
+      tier: project-db
+  template:
+    metadata:
+      labels:
+        app: alog
+        tier: project-db
+    spec:
+      containers:
+      - name: alog-project-db
+        image: mysql:8
+        env:
+          - name: MYSQL_DATABASE
+            value: alog
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: alog-secret
+                key: DB_PASSWORD
+                optional: false
+        ports:
+        - containerPort: 3306
+        volumeMounts:
+            - name: mysql-persistent-storage
+              mountPath: /var/lib/mysql
+      imagePullSecrets:
+        - name: regcred
+      volumes:
+        - name: mysql-persistent-storage
+          persistentVolumeClaim:
+            claimName: project-db-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alog-project-db
+spec:
+  ports:
+  - name : project-db-port
+    port: 3306
+    targetPort: 3306
+  selector:
+    app: alog
+    tier: project-db
+---

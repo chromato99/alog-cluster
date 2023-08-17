@@ -30,7 +30,7 @@ mongodb:
   name: *mongoUrl
   port: *mongoPort
   
-  storageClassName: ceph-block
+  storageClassName: csi-cinder-sc-delete
   storageSize: 8Gi
   
 # Configuration for istio ingress gateway
@@ -61,7 +61,7 @@ ingress:
   # ingressClassName: alb
 
   hosts:
-    enabled: false
+    enabled: true
     apiHost: yorkie.acceler.kr
     
   alb:

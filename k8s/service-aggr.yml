@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alog-service-aggr
+  labels:
+    app: alog
+    tier: service-aggr
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: alog
+      tier: service-aggr
+  template:
+    metadata:
+      labels:
+        app: alog
+        tier: service-aggr
+    spec:
+      containers:
+      - name: alog-service-aggr
+        image: chromato99/alog-service-aggregator:latest
+        env:
+          - name: USER_SERVICE_URL
+            value: http://alog-service-user:8081
+          - name: PROJECT_SERVICE_URL
+            value: http://alog-service-project:8083
+          - name: ISSUE_SERVICE_URL
+            value: http://alog-service-issue:8084
+          - name: RELEASE_NOTE_SERVICE_URL
+            value: http://alog-service-release:8085
+          - name: FILE_SERVICE_URL
+            value: http://alog-service-file:8086
+          - name: NOTICE_SERVICE_URL
+            value: http://alog-service-noti:8088
+        ports:
+        - containerPort: 8082
+          name: aggr-http
+      imagePullSecrets:
+        - name: regcred
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alog-service-aggr
+spec:
+  ports:
+  - name : aggr-port
+    port: 8082
+    targetPort: aggr-http
+  selector:
+    app: alog
+    tier: service-aggr
+---

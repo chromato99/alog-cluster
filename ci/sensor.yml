@@ -38,8 +38,9 @@ spec:
                     - name: repository_url
                       # the value will get overridden by event payload from event-dep
                       value: example.com
-                    - name: date
-                      value: "{{workflow.creationTimestamp.Y}}-{ {workflow.creationTimestamp.m}}-{ {workflow.creationTimestamp.d}}"
+                    - name: commit_sha
+                      # the value will get overridden by event payload from event-dep
+                      value: 1234567
                 templates:
                   - name: main
                     steps:
@@ -70,27 +71,40 @@ spec:
                         - "--dockerfile=Dockerfile"
                         - "--context=."
                         - "--build-arg=REACT_APP_CLIENT_ID"
+                        - "--build-arg=REACT_APP_CLIENT_SECRET"
                         - "--build-arg=REACT_APP_ALOG_API_URL"
+                        - "--build-arg=REACT_APP_YORKIE_API_URL"
+                        - "--build-arg=REACT_APP_YORKIE_API_KEY"
                         # - "--destination=<private docker-registry>/{{workflow.parameters.repository_name}}:latest" # if you are using a private docker registry
-                        - "--destination=chromato99/{{workflow.parameters.repository_name}}:stable-{{workflow.parameters.date}}"
-                        - "--destination=chromato99/{{workflow.parameters.repository_name}}:stable"
+                        - "--destination=chromato99/{{workflow.parameters.repository_name}}:main-{{workflow.parameters.commit_sha}}"
+                        - "--destination=chromato99/{{workflow.parameters.repository_name}}:main"
                         - "--destination=chromato99/{{workflow.parameters.repository_name}}:latest"
                       env:
                         - name: REACT_APP_CLIENT_ID
                           valueFrom:
                             secretKeyRef:
                               key: REACT_APP_CLIENT_ID
-                              name: alog-secret
-                        - name: GH_LOGIN_REDIRECT_URL
+                              name: alog-secret-main
+                        - name: REACT_APP_CLIENT_SECRET
                           valueFrom:
                             secretKeyRef:
-                              key: GH_LOGIN_REDIRECT_URL
-                              name: alog-secret
+                              key: REACT_APP_CLIENT_SECRET
+                              name: alog-secret-main
                         - name: REACT_APP_ALOG_API_URL
                           valueFrom:
                             secretKeyRef:
                               key: REACT_APP_ALOG_API_URL
-                              name: alog-secret
+                              name: alog-secret-main
+                        - name: REACT_APP_YORKIE_API_URL
+                          valueFrom:
+                            secretKeyRef:
+                              key: REACT_APP_YORKIE_API_URL
+                              name: alog-secret-main
+                        - name: REACT_APP_YORKIE_API_KEY
+                          valueFrom:
+                            secretKeyRef:
+                              key: REACT_APP_YORKIE_API_KEY
+                              name: alog-secret-main
                       volumeMounts:
                         - name: kaniko-secret
                           mountPath: /kaniko/.docker
@@ -117,7 +131,7 @@ spec:
                   #     - '--remote'
                   #     - 'http://trivy-rules.argo.svc:8080'
                   #     - 'ghcr.io/kmaster8/hello:v3'
-
+                  #
                   # Deprecated: use argocd-image-updater instead
                   # - name: sync-argo-cd
                   #   container:
@@ -150,6 +164,10 @@ spec:
                 dependencyName: event-dep
                 dataKey: body.repository.clone_url
               dest: spec.arguments.parameters.1.value
+            - src:
+                dependencyName: event-dep
+                dataTemplate: "{{ .Input.body.after | substr 0 7 }}"
+              dest: spec.arguments.parameters.2.value
             - src:
                 dependencyName: event-dep
                 dataTemplate: "{{ .Input.body.repository.name }}-main-"

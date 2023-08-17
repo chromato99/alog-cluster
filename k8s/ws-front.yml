@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alog-ws-front
+  labels:
+    app: alog
+    tier: ws-front
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: alog
+      tier: ws-front
+  template:
+    metadata:
+      labels:
+        app: alog
+        tier: ws-front
+    spec:
+      containers:
+      - name: ws-front
+        image: chromato99/alog-front-web:latest
+        ports:
+        - containerPort: 80
+          name: ws-front-http
+      imagePullSecrets:
+        - name: regcred
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alog-ws-front
+spec:
+  ports:
+  - name : ws-front-port
+    port: 80
+    targetPort: ws-front-http
+  selector:
+    app: alog
+    tier: ws-front
+---

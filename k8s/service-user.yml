@@ -1,0 +1,156 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alog-service-user
+  labels:
+    app: alog
+    tier: service-user
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: alog
+      tier: service-user
+  template:
+    metadata:
+      labels:
+        app: alog
+        tier: service-user
+    spec:
+      containers:
+      - name: alog-service-user
+        image: chromato99/alog-service-user:latest
+        env:
+          - name: SPRING_DATASOURCE_URL
+            value: jdbc:mysql://alog-user-db:3306/alog?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+          - name: SPRING_DATASOURCE_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: alog-secret
+                key: DB_USERNAME
+                optional: false
+          - name: SPRING_DATASOURCE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: alog-secret
+                key: DB_PASSWORD
+                optional: false
+          - name: SPRING_MAIL_HOST
+            valueFrom:
+              secretKeyRef:
+                name: alog-secret
+                key: SPRING_MAIL_HOST
+                optional: false
+          - name: SPRING_MAIL_PORT
+            valueFrom:
+              secretKeyRef:
+                name: alog-secret
+                key: SPRING_MAIL_PORT
+                optional: false
+          - name: SPRING_MAIL_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: alog-secret
+                key: SPRING_MAIL_USERNAME
+                optional: false
+          - name: SPRING_MAIL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: alog-secret
+                key: SPRING_MAIL_PASSWORD
+                optional: false
+          - name: SPRING_MAIL_PROPS_MAIL_SMTP_TIMEOUT
+            valueFrom:
+              secretKeyRef:
+                name: alog-secret
+                key: SPRING_MAIL_PROPS_MAIL_SMTP_TIMEOUT
+                optional: false
+          - name: NOTICE_SERVICE_URL
+            value: http://alog-service-noti:8088
+        ports:
+        - containerPort: 8081
+          name: user-http
+      imagePullSecrets:
+        - name: regcred
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alog-service-user
+spec:
+  ports:
+  - name : user-port
+    port: 8081
+    targetPort: user-http
+  selector:
+    app: alog
+    tier: service-user
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: user-db-pvc
+spec:
+  storageClassName: csi-cinder-sc-delete
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alog-user-db
+  labels:
+    app: alog
+    tier: user-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alog
+      tier: user-db
+  template:
+    metadata:
+      labels:
+        app: alog
+        tier: user-db
+    spec:
+      containers:
+      - name: alog-user-db
+        image: mysql:8
+        env:
+          - name: MYSQL_DATABASE
+            value: alog
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: alog-secret
+                key: DB_PASSWORD
+                optional: false
+        ports:
+        - containerPort: 3306
+        volumeMounts:
+            - name: mysql-persistent-storage
+              mountPath: /var/lib/mysql
+      imagePullSecrets:
+        - name: regcred
+      volumes:
+        - name: mysql-persistent-storage
+          persistentVolumeClaim:
+            claimName: user-db-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alog-user-db
+spec:
+  ports:
+  - name : user-db-port
+    port: 3306
+    targetPort: 3306
+  selector:
+    app: alog
+    tier: user-db
+---
