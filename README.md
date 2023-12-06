@@ -4,6 +4,13 @@ This is a repository for integration of A-Log projects.
 
 You can deploy all services of alog to kubernetes or test them using docker compose through the configuration files in this repository.
 
+## What is A-Log?
+
+- **A-Log** was created **<u>to promote collaboration among project members</u>**.
+- **Real-time simultaneous editing** function is provided so you can check other project members' writing in real time.
+- You can create projects and manage topics, issues, and release notes.
+- We also provide a simple login function using GitHub Login.
+
 ## Kubernetes Deployment
 
 ### Prerequisites
@@ -69,3 +76,5 @@ A-Form cluster is composed of below repositories.
 - [alog-service-release](https://github.com/KEA-ACCELER/alog-service-release.git)
 - [alog-service-aggregator](https://github.com/KEA-ACCELER/alog-service-aggregator.git)
 - [alog-service-auth](https://github.com/KEA-ACCELER/alog-service-auth.git)
+- [alog-service-notification](https://github.com/KEA-ACCELER/alog-service-notification.git)
+- [alog-service-file](https://github.com/KEA-ACCELER/alog-service-file.git)
